@@ -30,22 +30,30 @@ aws ec2 describe-route-tables --route-table-id $RT_ID
 aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --route-table-id $RT_ID
 aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_ID
 
-echo "These resources were just created: "
-echo -e $VPC_ID $IGW_ID $SUBNET_ID $RT_ID
-# $SGroup_ID
 aws ec2 wait vpc-available --vpc-ids $VPC_ID
-echo "Vpc ready, next comes an instance"
-
+echo "$VPC_ID ready"
+echo "and $IGW_ID $SUBNET_ID $RT_ID were created"
 
 # In order to create an ec2 instance
-# Create a key pair
-# aws ec2 create-key-pair --key-name MyKeyPair --query 'KeyMaterial' --output text > MyKeyPair.pem
-# chmod 400 MyKeyPair.pem
+# Create a new key pair
+aws ec2 create-key-pair --key-name Step1KeyPair --query 'KeyMaterial' --output text > Step1KeyPair.pem
+chmod 400 Step1KeyPair.pem
+aws ec2 wait key-pair-exists --key-names Step1KeyPair
+KEYPAIR_ID=$(aws ec2 describe-key-pairs  --key-names Step1KeyPair | egrep "KeyPairId" | cut -f2 -d : | tr -d \",)
+echo "$KEYPAIR_ID created"
 
 # Create a security group and allow SSH access from anywhere, (Not advisable in production)
-# aws ec2 create-security-group --group-name SSHAccess --description "Security group for SSH access" --vpc-id $VPC_ID
-# SGroup_ID=$(aws ec2 describe-security-groups --filters Name=description,Values="Security group for SSH access" | egrep "GroupId" | cut -f2 -d : | tr -d \",)
-# aws ec2 authorize-security-group-ingress --group-id $SGroup_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 create-security-group --group-name Step1SSHAccess --description "Step-1 security group for SSH access" --vpc-id $VPC_ID
+SGROUP_ID=$(aws ec2 describe-security-groups --filters Name=description,Values="Step-1 security group for SSH access" | egrep "GroupId" | cut -f2 -d : | tr -d \",)
+aws ec2 authorize-security-group-ingress --group-id $SGROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 wait security-group-exists --group-ids $SGROUP_ID
+echo "$SGROUP_ID created"
 
-# aws ec2 run-instances --image-id ami-085925f297f89fce1 --count 1 --instance-type t2.micro --key-name MyKeyPair --security-group-ids $SGroup_ID --subnet-id $SUBNET_ID
-# aws ec2 describe-instances
+# Create an ec2 instance running Ubuntu 18 AMI on t2.micro
+INSTANCE_ID=$(aws ec2 run-instances --image-id ami-085925f297f89fce1 --count 1 --instance-type t2.micro --key-name Step1KeyPair --security-group-ids $SGROUP_ID --subnet-id $SUBNET_ID  | egrep "InstanceId" | cut -f2 -d : | tr -d \",)
+aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value="Step-1"
+echo "$INSTANCE_ID created. Booting up"
+aws ec2 wait instance-exists --instance-ids $INSTANCE_ID
+PUB_IPADDRESS=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | egrep "PublicIpAddress" | cut -f2 -d : | tr -d \",)
+echo
+echo "Success! EC2 Instance $INSTANCE_ID created with Public IP address: $PUB_IPADDRESS"
