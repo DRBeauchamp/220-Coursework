@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# aws ec2 describe-instances
+# Deletes Step-1 ec2 instance, vpc and all associated resources.
 VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=Step-1" | egrep "VpcId" | cut -f2 -d : | tr -d \",)
 SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" | egrep "SubnetId" | tail -1 | cut -f2 -d : | tr -d \",)
 IGW_ID=$(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" | egrep "igw-" | cut -f2 -d : | tr -d \",)
