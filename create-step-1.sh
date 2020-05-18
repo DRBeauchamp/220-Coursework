@@ -51,8 +51,8 @@ aws ec2 authorize-security-group-ingress --group-id $SGROUP_ID --protocol tcp --
 aws ec2 wait security-group-exists --group-ids $SGROUP_ID
 echo "Security group: Step1-Access $SGROUP_ID created"
 
-# Create an ec2 instance running Ubuntu 18 AMI on t1.micro
-INSTANCE_ID=$(aws ec2 run-instances --image-id ami-085925f297f89fce1 --count 1 --instance-type t1.micro --key-name Step1KeyPair --security-group-ids $SGROUP_ID --subnet-id $SUBNET_ID  | egrep "InstanceId" | cut -f2 -d : | tr -d \",)
+# Create an ec2 instance running Ubuntu 18 AMI on t2.micro
+INSTANCE_ID=$(aws ec2 run-instances --image-id ami-085925f297f89fce1 --count 1 --instance-type t2.micro --key-name Step1KeyPair --security-group-ids $SGROUP_ID --subnet-id $SUBNET_ID  | egrep "InstanceId" | cut -f2 -d : | tr -d \",)
 aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value="Step-1"
 echo "$INSTANCE_ID created. Booting up"
 aws ec2 wait instance-exists --instance-ids $INSTANCE_ID
