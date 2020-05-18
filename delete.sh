@@ -13,8 +13,9 @@ rm -f Step1KeyPair.pem
 echo "Deleted Step1KeyPair"
 
 aws ec2 terminate-instances --instance-ids $INSTANCE_ID
+echo "Please wait..."
 aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
-echo "Instance terminated"
+echo "Instance $INSTANCE_ID terminated"
 
 aws ec2 delete-security-group --group-id $SGROUP_ID
 aws ec2 delete-subnet --subnet-id $SUBNET_ID
