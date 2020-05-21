@@ -31,7 +31,7 @@ aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id $IGW_ID --r
 aws ec2 associate-route-table --route-table-id $RT_ID --subnet-id $SUBNET_ID
 
 aws ec2 wait vpc-available --vpc-ids $VPC_ID
-echo "$VPC_ID $IGW_ID $SUBNET_ID $RT_ID are ready"
+echo -e "$VPC_ID\n$IGW_ID\n$SUBNET_ID\nand $RT_ID are ready"
 
 # Create a new key pair
 aws ec2 create-key-pair --key-name Step1KeyPair --query 'KeyMaterial' --output text > Step1KeyPair.pem
@@ -46,13 +46,16 @@ SGROUP_ID=$(aws ec2 describe-security-groups --filters Name=description,Values="
 aws ec2 authorize-security-group-ingress --group-id $SGROUP_ID --protocol tcp --port 22 --cidr 0.0.0.0/0
 aws ec2 authorize-security-group-ingress --group-id $SGROUP_ID --protocol tcp --port 80 --cidr 0.0.0.0/0
 aws ec2 wait security-group-exists --group-ids $SGROUP_ID
-echo "Security group: Step1-Access $SGROUP_ID created"
+echo "Security group: $SGROUP_ID created"
 
 # Create an ec2 instance running Ubuntu 18 AMI on t2.micro
 INSTANCE_ID=$(aws ec2 run-instances --image-id ami-085925f297f89fce1 --count 1 --instance-type t2.micro --key-name Step1KeyPair --security-group-ids $SGROUP_ID --subnet-id $SUBNET_ID  | egrep "InstanceId" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
 aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value="Step-1"
-echo "$INSTANCE_ID created. Booting up"
+echo "Instance $INSTANCE_ID created."
+echo "Booting up..."
 aws ec2 wait instance-exists --instance-ids $INSTANCE_ID
 PUB_IPADDRESS=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | egrep "PublicIpAddress" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
+echo ""
 echo "Success!"
+echo ""
 echo "$INSTANCE_ID created with public IP address: $PUB_IPADDRESS"
