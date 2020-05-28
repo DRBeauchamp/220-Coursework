@@ -73,5 +73,5 @@ echo "Creating instance"
 echo "This could take a few moments..."
 aws ec2 wait instance-exists --instance-ids $INSTANCE_ID
 PUB_IPADDRESS=$(aws ec2 describe-instances --instance-ids $INSTANCE_ID | grep PublicIpAddress | cut -f4 -d \" )
-echo -e "\nSuccess!\n"
+echo -e "\nSuccess!"
 echo "Instance $INSTANCE_ID created with public IP address: $PUB_IPADDRESS"
