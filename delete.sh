@@ -1,19 +1,28 @@
 #!/usr/bin/env bash
 
+export AWS_DEFAULT_REGION=us-east-1
+
 # Deletes Step-1 ec2 instance, vpc and all associated resources.
-VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=Step-1" | egrep "VpcId" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
-SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" | egrep "SubnetId" | tail -1 | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
-IGW_ID=$(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" | egrep "igw-" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
-RT_ID=$(aws ec2 describe-route-tables --filters "Name=association.subnet-id,Values=$SUBNET_ID" | egrep "rtb-" | head -1 | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
-SGROUP_ID=$(aws ec2 describe-security-groups --filters "Name=description,Values=Step-1 security group for SSH access" | egrep "GroupId" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
-INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=vpc-id,Values=$VPC_ID" | egrep "InstanceId" | cut -f2 -d : | tr -d \", | cut -d ' ' -f2)
+VPC_ID=$(aws ec2 describe-vpcs --filters "Name=tag:Name,Values=Step-1" | grep "VpcId" | cut -f4 -d \" )
+SUBNET_ID=$(aws ec2 describe-subnets --filters "Name=vpc-id,Values=$VPC_ID" | grep SubnetId | cut -f4 -d \" )
+IGW_ID=$(aws ec2 describe-internet-gateways --filters "Name=attachment.vpc-id,Values=$VPC_ID" | grep "igw-" | cut -f4 -d \" )
+RT_ID=$(aws ec2 describe-route-tables --filters "Name=tag:Name,Values=Step-1" | grep -m 1 "rtb-" | cut -f4 -d \" )
+SGROUP_ID=$(aws ec2 describe-security-groups --filters "Name=description,Values=Step-1 security group for SSH access" | grep GroupId | cut -f4 -d \" )
+INSTANCE_ID=$(aws ec2 describe-instances --filters "Name=vpc-id,Values=$VPC_ID" "Name=instance-state-name,Values=running" | grep InstanceId | cut -f4 -d \" )
 
+# echo -e "Deleting Step1KeyPair\n"
 aws ec2 delete-key-pair --key-name Step1KeyPair
-rm -f Step1KeyPair.pem
-echo "Deleted Step1KeyPair"
+while true; do
+    read -p "Is it ok to delete Step1KeyPair.pem from your computer? (Y/N)" YN
+    case $YN in
+        [Yy]* ) rm -f Step1KeyPair.pem;echo "Deleted Step1KeyPair";break;;
+        [Nn]* ) break;;
+        * ) echo "Please answer y(es) or n(o).";;
+    esac
+done
 
+echo -e "Terminating Step-1 instance\nThis could take a few moments..."
 aws ec2 terminate-instances --instance-ids $INSTANCE_ID
-echo -e "terminating instance\nPlease wait..."
 aws ec2 wait instance-terminated --instance-ids $INSTANCE_ID
 echo "$INSTANCE_ID terminated"
 
