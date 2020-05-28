@@ -21,15 +21,15 @@ ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS sudo update-alternatives --install
 # can verify with: python -m django --version
 echo "Django and Python3 installed"
 
-# ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS django-admin startproject mysite
+ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS django-admin startproject mysite
 # Modify ./mysite/mysite/settings.py
-# ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS sed -i "28s:[[]:\[\'\*\':" ./mysite/mysite/settings.py
+ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS sed -i "28s:[[]:\[\'\*\':" ./mysite/mysite/settings.py
 # check if it worked with:
 # ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS cat ./mysite/mysite/settings.py | egrep "ALLOWED_HOSTS"
 
 # Runserver as root via screen
-# ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS "cd ./mysite ; sudo screen -dmS django-screen python manage.py runserver 0:80"
-# echo "Django runserver on at $PUB_IPADDRESS"
+ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS "cd ./mysite ; sudo screen -dmS django-screen python manage.py runserver 0:80"
+echo "Go see Django default at http://$PUB_IPADDRESS"
 
 # To turn off the screen:
 # ssh -i Step1KeyPair.pem ubuntu@$PUB_IPADDRESS sudo screen -XS django-screen quit
