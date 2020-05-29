@@ -7,8 +7,8 @@ The bash scripts in this repo use the AWS CLI (v2) to create a new (free tier el
     * AWS CLI version 2
 
 # The scripts:
-   -create-step-1.sh - creates a VPC, with a public subnet, associated resources and a single ec2 instance running Ubuntu 18.
+   * create-step-1.sh - creates a VPC, with a public subnet, associated resources and a single ec2 instance running Ubuntu 18.
 
-   -create-step-2.sh - ssh to that instance and gets Django installed and running the default "hello world" page at it's ip address.
+   * create-step-2.sh - ssh to that instance and gets Django installed and running the default "hello world" page at it's ip address.
 
-   -delete.sh - Cleans up and deletes all of the resources created in the first two scripts.
+   * delete.sh - Cleans up and deletes all of the resources created in the first two scripts.
